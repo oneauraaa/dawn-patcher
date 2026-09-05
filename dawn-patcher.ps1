@@ -93,9 +93,7 @@ Write-Host ""
 Show-CheckingAnimation
 
 if (-not (Test-Path $cfgPath)) {
-    Complete-Status "Dawn config not found."
-    Write-Host "  Checked: $cfgPath"
-    Write-Host "  Is Dawn installed? This script only supports the standard per-user install location."
+    Complete-Status "Dawn config not found at $cfgPath -- is Dawn installed?"
     exit 1
 }
 
@@ -119,10 +117,9 @@ try {
             Set-Content -Path $cfgPath -Value $newContent -NoNewline
         }
 
-        Complete-Status "Patch uninstalled!"
-        Write-Host ""
-        Write-Host "Dawn is back to fully stock. Launch it normally whenever you like."
-        Write-Host "Run this script again any time to re-apply the patch."
+        Complete-Status "Patch uninstalled! Dawn is back to stock -- closing terminal..."
+        Start-Sleep -Milliseconds 1200
+        exit 0
     } else {
         # ---- INSTALL ----
         Write-Status "Installation not found, installing patch..."
@@ -156,23 +153,20 @@ try {
             }
         }
 
-        Complete-Status "Patch installed!"
-        Write-Host ""
         $running = Get-Process "Dawn (Feather)" -ErrorAction SilentlyContinue
         if ($running) {
-            Write-Host "Dawn is currently running -- restart it for the patch to take effect."
+            Complete-Status "Patch installed! Restart Dawn for it to take effect -- closing terminal..."
         } else {
-            Write-Host "Launch Dawn normally (double-click, Start Menu, etc.) and the patch will be active."
+            Complete-Status "Patch installed! Launch Dawn normally to use it -- closing terminal..."
         }
-        Write-Host "Run this script again any time to revert to stock Dawn."
+        Start-Sleep -Milliseconds 1200
+        exit 0
     }
 } catch {
     if ($isInstalled) {
-        Complete-Status "Patch uninstall failed!"
+        Complete-Status "Patch uninstall failed: $($_.Exception.Message)"
     } else {
-        Complete-Status "Patch install failed!"
+        Complete-Status "Patch install failed: $($_.Exception.Message)"
     }
-    Write-Host ""
-    Write-Host "Error: $($_.Exception.Message)"
     exit 1
 }
