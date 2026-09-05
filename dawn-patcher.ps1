@@ -19,6 +19,18 @@
 
 $ErrorActionPreference = "Stop"
 
+# GitHub release assets are served as application/octet-stream (no charset),
+# so `irm | iex` can decode the raw UTF-8 bytes with the wrong code page,
+# mangling the multi-byte ASCII-art characters below before this script even
+# runs. Storing the art as base64 keeps it ASCII-only in transit -- immune to
+# that mis-decoding -- and we decode it explicitly as UTF-8 here. We also
+# force the console's output encoding to UTF-8 so the decoded glyphs render
+# correctly regardless of the host's default code page.
+try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
+
+$artB64 = "IOKjh+Kjv+KgmOKjv+Kjv+Kjv+Khv+Khv+Kjn+Kjn+Kin+Kin+KineKgteKhneKjv+Khv+KiguKjvOKjv+Kjt+KjjOKgqeKhq+Khu+KjneKgueKiv+Kjv+Kjtwog4qGG4qO/4qOG4qCx4qOd4qG14qOd4qKF4qCZ4qO/4qKV4qKV4qKV4qKV4qKd4qOl4qKS4qCF4qO/4qO/4qO/4qG/4qOz4qOM4qCq4qGq4qOh4qKR4qKd4qOHCiDioYbio7/io7/io6bioLnio7Pio7Pio5XiooXioIjiopfiopXiopXiopXiopXiopXioojioobioJ/ioIvioInioIHioInioInioIHioIjioLziopDiopXior0KIOKhl+KisOKjtuKjtuKjpuKjneKineKileKileKgheKhhuKileKileKileKileKileKjtOKgj+KjoOKhtuKgm+KhieKhieKhm+KituKjpuKhgOKgkOKjleKilQog4qGd4qGE4qK74qKf4qO/4qO/4qO34qOV4qOV4qOF4qO/4qOU4qOV4qO14qO14qO/4qO/4qKg4qO/4qKg4qOu4qGI4qOM4qCo4qCF4qC54qO34qGA4qKx4qKVCiDioZ3iobXioJ/ioIjiooDio4Dio4DioYDioInior/io7/io7/io7/io7/io7/io7/io7/io7zio7/ioojioYvioLTior/ioZ/io6HioYfio7/ioYfioYDiopUKIOKhneKggeKjoOKjvuKgn+KhieKhieKhieKgu+KjpuKju+Kjv+Kjv+Kjv+Kjv+Kjv+Kjv+Kjv+Kjv+Kjp+KguOKjv+KjpuKjpeKjv+Khh+Khv+KjsOKil+KihAog4qCB4qKw4qO/4qGP4qO04qOM4qCI4qOM4qCh4qCI4qK74qO/4qO/4qO/4qO/4qO/4qO/4qO/4qO/4qO/4qO/4qOs4qOJ4qOJ4qOB4qOE4qKW4qKV4qKV4qKVCiDioYDiorvio7/ioYfiopnioIHioLTior/ioZ/io6HioYbio7/io7/io7/io7/io7/io7/io7/io7/io7/io7/io7/io7/io7/io7/io7/io7fio7Xio7Xio78KIOKhu+KjhOKju+Kjv+KjjOKgmOKiv+Kjt+KjpeKjv+Kgh+Kjv+Kjv+Kjv+Kjv+Kjv+Kjv+Kgm+Kgu+Kjv+Kjv+Kjv+Kjv+Kjv+Kjv+Kjv+Kjv+Kjv+Kjv+Kjvwog4qO34qKE4qC74qO/4qOf4qC/4qCm4qCN4qCJ4qOh4qO+4qO/4qO/4qO/4qO/4qO/4qO/4qK44qO/4qOm4qCZ4qO/4qO/4qO/4qO/4qO/4qO/4qO/4qO/4qCfCiDioZXioZHio5Hio4jio7viopfiop/iop7iop3io7vio7/io7/io7/io7/io7/io7/io7/ioLjio7/ioL/ioIPio7/io7/io7/io7/io7/io7/iob/ioIHio6AKIOKhneKhteKhiOKin+KileKileKileKileKjteKjv+Kjv+Kjv+Kjv+Kjv+Kjv+Kjv+Kjv+Kjv+KjtuKjtuKjv+Kjv+Kjv+Kjv+Kjv+Kgv+Kgi+KjgOKjiOKgmQog4qGd4qG14qGV4qGA4qCR4qCz4qC/4qO/4qO/4qO/4qO/4qO/4qO/4qO/4qO/4qO/4qO/4qO/4qO/4qO/4qO/4qC/4qCb4qKJ4qGg4qGy4qGr4qGq4qGq4qGj"
+$art = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($artB64))
+
 $installDir   = "$env:LOCALAPPDATA\DawnPatcher"
 $agentJar     = Join-Path $installDir "dawn-patcher-agent.jar"
 $backupPath   = Join-Path $installDir "Dawn (Feather).cfg.orig-backup"
@@ -73,25 +85,10 @@ function Stop-Dawn {
 }
 
 Clear-Host
-Write-Host @"
- ⣇⣿⠘⣿⣿⣿⡿⡿⣟⣟⢟⢟⢝⠵⡝⣿⡿⢂⣼⣿⣷⣌⠩⡫⡻⣝⠹⢿⣿⣷
- ⡆⣿⣆⠱⣝⡵⣝⢅⠙⣿⢕⢕⢕⢕⢝⣥⢒⠅⣿⣿⣿⡿⣳⣌⠪⡪⣡⢑⢝⣇
- ⡆⣿⣿⣦⠹⣳⣳⣕⢅⠈⢗⢕⢕⢕⢕⢕⢈⢆⠟⠋⠉⠁⠉⠉⠁⠈⠼⢐⢕⢽
- ⡗⢰⣶⣶⣦⣝⢝⢕⢕⠅⡆⢕⢕⢕⢕⢕⣴⠏⣠⡶⠛⡉⡉⡛⢶⣦⡀⠐⣕⢕
- ⡝⡄⢻⢟⣿⣿⣷⣕⣕⣅⣿⣔⣕⣵⣵⣿⣿⢠⣿⢠⣮⡈⣌⠨⠅⠹⣷⡀⢱⢕
- ⡝⡵⠟⠈⢀⣀⣀⡀⠉⢿⣿⣿⣿⣿⣿⣿⣿⣼⣿⢈⡋⠴⢿⡟⣡⡇⣿⡇⡀⢕
- ⡝⠁⣠⣾⠟⡉⡉⡉⠻⣦⣻⣿⣿⣿⣿⣿⣿⣿⣿⣧⠸⣿⣦⣥⣿⡇⡿⣰⢗⢄
- ⠁⢰⣿⡏⣴⣌⠈⣌⠡⠈⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣬⣉⣉⣁⣄⢖⢕⢕⢕
- ⡀⢻⣿⡇⢙⠁⠴⢿⡟⣡⡆⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣵⣵⣿
- ⡻⣄⣻⣿⣌⠘⢿⣷⣥⣿⠇⣿⣿⣿⣿⣿⣿⠛⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
- ⣷⢄⠻⣿⣟⠿⠦⠍⠉⣡⣾⣿⣿⣿⣿⣿⣿⢸⣿⣦⠙⣿⣿⣿⣿⣿⣿⣿⣿⠟
- ⡕⡑⣑⣈⣻⢗⢟⢞⢝⣻⣿⣿⣿⣿⣿⣿⣿⠸⣿⠿⠃⣿⣿⣿⣿⣿⣿⡿⠁⣠
- ⡝⡵⡈⢟⢕⢕⢕⢕⣵⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣶⣿⣿⣿⣿⣿⠿⠋⣀⣈⠙
- ⡝⡵⡕⡀⠑⠳⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠛⢉⡠⡲⡫⡪⡪⡣
-
- Dawn Client Patcher | oneauraaa/dawn-patcher | oneaura.lol
-
-"@
+Write-Host $art
+Write-Host ""
+Write-Host " Dawn Client Patcher | oneauraaa/dawn-patcher | oneaura.lol"
+Write-Host ""
 
 Show-CheckingAnimation
 
